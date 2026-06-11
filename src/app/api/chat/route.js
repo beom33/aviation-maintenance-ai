@@ -11,7 +11,7 @@ const SYSTEM_PROMPT = `당신은 항공정비 전문 AI 비서입니다.
 - 한국어로 답변하되, 기술 용어는 영문 약어와 함께 표기하세요 (예: 착륙장치(Landing Gear))
 - 단계별 절차가 필요한 경우 번호를 붙여 명확히 설명하세요`;
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const { messages } = await request.json();
 

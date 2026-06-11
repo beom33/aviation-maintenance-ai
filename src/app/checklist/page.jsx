@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { CheckSquare, Square, RefreshCw, ClipboardList } from 'lucide-react';
-import type { ChecklistItem } from '@/lib/types';
 
 export default function ChecklistPage() {
   const [aircraftType, setAircraftType] = useState('');
   const [taskType, setTaskType] = useState('');
-  const [items, setItems] = useState<ChecklistItem[]>([]);
+  const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState('');
 
@@ -25,7 +24,7 @@ export default function ChecklistPage() {
       });
 
       const data = await res.json();
-      setItems((data.items as string[]).map((text, i) => ({
+      setItems(data.items.map((text, i) => ({
         id: String(i),
         text,
         checked: false,
@@ -38,7 +37,7 @@ export default function ChecklistPage() {
     }
   };
 
-  const toggleItem = (id: string) => {
+  const toggleItem = (id) => {
     setItems(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
   };
 

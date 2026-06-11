@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Search, Calendar, PlaneTakeoff, User, X } from 'lucide-react';
-import type { WorkRecord } from '@/lib/types';
 
 const STATUS_STYLE = {
   completed: 'bg-green-100 text-green-700 border-green-200',
@@ -17,11 +16,11 @@ const EMPTY_FORM = {
   taskType: '',
   description: '',
   technician: '',
-  status: 'completed' as WorkRecord['status'],
+  status: 'completed',
 };
 
 export default function HistoryPage() {
-  const [records, setRecords] = useState<WorkRecord[]>([]);
+  const [records, setRecords] = useState([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -33,7 +32,7 @@ export default function HistoryPage() {
     }
   }, []);
 
-  const persist = (next: WorkRecord[]) => {
+  const persist = (next) => {
     setRecords(next);
     localStorage.setItem('aviation-work-history', JSON.stringify(next));
   };
@@ -45,7 +44,7 @@ export default function HistoryPage() {
     setForm(EMPTY_FORM);
   };
 
-  const deleteRecord = (id: string) => {
+  const deleteRecord = (id) => {
     if (confirm('이 기록을 삭제하시겠습니까?')) persist(records.filter(r => r.id !== id));
   };
 
@@ -143,7 +142,7 @@ export default function HistoryPage() {
                   <label className="block text-xs font-medium text-slate-600 mb-1">상태</label>
                   <select
                     value={form.status}
-                    onChange={e => setForm({ ...form, status: e.target.value as WorkRecord['status'] })}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
                     className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="completed">완료</option>

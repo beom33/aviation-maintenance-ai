@@ -3,16 +3,6 @@
 import { useState } from 'react';
 import { Search, AlertTriangle, CheckCircle, Info, FileText } from 'lucide-react';
 
-interface Analysis {
-  code: string;
-  description: string;
-  severity: 'high' | 'medium' | 'low';
-  possibleCauses: string[];
-  correctiveActions: string[];
-  references: string[];
-  notes: string;
-}
-
 const SEVERITY_STYLE = {
   high: { bg: 'bg-red-50 border-red-200', text: 'text-red-700', label: '고위험 (즉시 조치)', dot: 'bg-red-500' },
   medium: { bg: 'bg-orange-50 border-orange-200', text: 'text-orange-700', label: '중위험 (차기 정비)', dot: 'bg-orange-500' },
@@ -24,10 +14,10 @@ const EXAMPLE_CODES = ['27-11-00', '34-51-00', 'EICAS FUEL PRESS LOW', 'P0300', 
 export default function FaultCodePage() {
   const [code, setCode] = useState('');
   const [aircraftType, setAircraftType] = useState('');
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [analysis, setAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const analyzeCode = async (targetCode?: string) => {
+  const analyzeCode = async (targetCode) => {
     const c = (targetCode ?? code).trim();
     if (!c) return;
     if (targetCode) setCode(targetCode);

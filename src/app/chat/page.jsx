@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Trash2 } from 'lucide-react';
-import type { Message } from '@/lib/types';
 
 const QUICK_QUESTIONS = [
   'B737 CFM56-7B 엔진 시동 절차는?',
@@ -12,26 +11,26 @@ const QUICK_QUESTIONS = [
 ];
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async (text?: string) => {
+  const sendMessage = async (text) => {
     const content = (text ?? input).trim();
     if (!content || isLoading) return;
 
-    const userMsg: Message = { role: 'user', content };
+    const userMsg = { role: 'user', content };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     setInput('');
     setIsLoading(true);
 
-    const aiMsg: Message = { role: 'assistant', content: '' };
+    const aiMsg = { role: 'assistant', content: '' };
     setMessages([...nextMessages, aiMsg]);
 
     try {
@@ -57,14 +56,14 @@ export default function ChatPage() {
     } catch {
       setMessages([...nextMessages, {
         role: 'assistant',
-        content: '오류가 발생했습니다. .env.local 파일에 OPENAI_API_KEY가 설정되어 있는지 확인하세요.',
+        content: '오류가 발생했습니다. .env.local 파일에 GROQ_API_KEY가 설정되어 있는지 확인하세요.',
       }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
