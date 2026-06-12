@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Trash2 } from 'lucide-react';
+import { Send, Bot, User, Trash2, BookOpen } from 'lucide-react';
 
 const QUICK_QUESTIONS = [
   'B737 CFM56-7B 엔진 시동 절차는?',
@@ -14,7 +14,16 @@ export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [useDocuments, setUseDocuments] = useState(false);
+  const [docCount, setDocCount] = useState(0);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    fetch('/api/documents')
+      .then(r => r.json())
+      .then(docs => setDocCount(docs.length))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,7 +46,7 @@ export default function ChatPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, useDocuments }),
       });
 
       if (!res.ok) throw new Error('API error');
@@ -130,6 +139,21 @@ export default function ChatPage() {
       </div>
 
       <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+        {docCount > 0 && (
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={() => setUseDocuments(v => !v)}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                useDocuments
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300'
+              }`}
+            >
+              <BookOpen className="w-3 h-3" />
+              문서 참조 {useDocuments ? 'ON' : 'OFF'} ({docCount}개)
+            </button>
+          </div>
+        )}
         <div className="flex gap-2 items-end">
           {messages.length > 0 && (
             <button

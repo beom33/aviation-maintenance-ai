@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { searchDocuments } from '@/lib/documentStore';
 
 const SYSTEM_PROMPT = `당신은 항공정비 전문 AI 비서입니다.
 항공기 정비 매뉴얼(AMM), 컴포넌트 정비 매뉴얼(CMM), 고장분리 매뉴얼(FIM/FRM), 배선도(WDM) 등에 관한 전문 지식을 갖추고 있습니다.
@@ -13,14 +14,26 @@ const SYSTEM_PROMPT = `당신은 항공정비 전문 AI 비서입니다.
 
 export async function POST(request) {
   try {
-    const { messages } = await request.json();
+    const { messages, useDocuments } = await request.json();
+
+    let systemPrompt = SYSTEM_PROMPT;
+
+    if (useDocuments) {
+      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+      if (lastUserMessage) {
+        const chunks = await searchDocuments(lastUserMessage.content);
+        if (chunks.length > 0) {
+          systemPrompt += `\n\n--- 업로드된 문서에서 찾은 관련 내용 ---\n${chunks.join('\n\n---\n')}\n---\n위 내용을 참조하여 답변하세요. 문서에 관련 내용이 있으면 "업로드된 문서에 따르면"이라고 명시하세요.`;
+        }
+      }
+    }
 
     const client = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: 'https://api.groq.com/openai/v1' });
 
     const stream = await client.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         ...messages,
       ],
       stream: true,
