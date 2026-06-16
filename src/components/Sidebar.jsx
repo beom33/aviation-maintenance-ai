@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, CheckSquare, AlertTriangle, History, Wrench, FileText } from 'lucide-react';
+import { MessageSquare, CheckSquare, AlertTriangle, History, Wrench, FileText, ClipboardList } from 'lucide-react';
 
 const navItems = [
   { href: '/chat', label: '매뉴얼 Q&A', icon: MessageSquare },
   { href: '/checklist', label: '작업 체크리스트', icon: CheckSquare },
   { href: '/fault-code', label: '결함 코드 분석', icon: AlertTriangle },
   { href: '/history', label: '작업 이력', icon: History },
+  { href: '/report', label: '정비 보고서', icon: ClipboardList },
   { href: '/documents', label: '문서 관리', icon: FileText },
 ];
 
