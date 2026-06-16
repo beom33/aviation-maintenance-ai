@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync:aircraft": "npx tsx prisma/sync-aircraft.ts",
+    "import:aircraft": "npx tsx prisma/sync-aircraft.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -22,7 +24,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "xlsx": "^0.18.5"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
