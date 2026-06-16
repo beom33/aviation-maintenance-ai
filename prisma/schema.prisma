@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  name        String
+  email       String       @unique
+  password    String
+  employeeId  String
+  airlineId   String
+  airline     Airline      @relation(fields: [airlineId], references: [id])
+  role        Role         @default(TECHNICIAN)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+}
+
+model Airline {
+  id       String     @id @default(cuid())
+  name     String     @unique
+  nameEn   String
+  code     String     @unique
+  aircraft Aircraft[]
+  users    User[]
+}
+
+model Aircraft {
+  id           String       @id @default(cuid())
+  registration String       @unique
+  type         String
+  manufacturer String
+  airlineId    String
+  airline      Airline      @relation(fields: [airlineId], references: [id])
+  assignments  Assignment[]
+  createdAt    DateTime     @default(now())
+}
+
+model Assignment {
+  id         String   @id @default(cuid())
+  userId     String
+  aircraftId String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aircraft   Aircraft @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, aircraftId])
+}
+
+enum Role {
+  TECHNICIAN
+  SUPERVISOR
+  ADMIN
+}
