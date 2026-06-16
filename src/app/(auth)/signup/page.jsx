@@ -3,14 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Wrench, Mail, Lock, User, Building2, CreditCard, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Wrench, Mail, Lock, User, Building2, CreditCard, AlertCircle, Loader2, CheckCircle2, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
   const [airlines, setAirlines] = useState([]);
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', employeeId: '', airlineId: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', employeeId: '', airlineId: '', adminCode: '' });
+  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [successRole, setSuccessRole] = useState('TECHNICIAN');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -27,15 +29,19 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
+      const body = { name: form.name, email: form.email, password: form.password, employeeId: form.employeeId, airlineId: form.airlineId };
+      if (isAdmin && form.adminCode) body.adminCode = form.adminCode;
+
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password, employeeId: form.employeeId, airlineId: form.airlineId }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? '회원가입에 실패했습니다'); return; }
+      setSuccessRole(data.role);
       setSuccess(true);
-      setTimeout(() => router.push('/login'), 2000);
+      setTimeout(() => router.push('/login'), 2500);
     } catch {
       setError('서버 오류가 발생했습니다');
     } finally {
@@ -47,8 +53,15 @@ export default function SignupPage() {
     return (
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-12 text-center">
-          <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          {successRole === 'ADMIN' ? (
+            <ShieldCheck className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          ) : (
+            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          )}
           <h2 className="text-2xl font-bold text-slate-800 mb-2">가입 완료!</h2>
+          {successRole === 'ADMIN' && (
+            <span className="inline-block px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-full mb-3">관리자 계정</span>
+          )}
           <p className="text-slate-500">로그인 페이지로 이동합니다...</p>
         </div>
       </div>
@@ -129,12 +142,45 @@ export default function SignupPage() {
             </div>
           </div>
 
+          {/* 관리자 코드 섹션 */}
+          <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => { setIsAdmin(!isAdmin); setForm((p) => ({ ...p, adminCode: '' })); }}
+              className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${isAdmin ? 'bg-red-50 text-red-700' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                관리자로 가입하기
+              </span>
+              {isAdmin ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {isAdmin && (
+              <div className="px-4 py-3 border-t border-red-100 bg-red-50/50">
+                <label className="block text-xs font-medium text-red-700 mb-1.5">관리자 코드</label>
+                <div className="relative">
+                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-red-400" />
+                  <input
+                    type="password"
+                    value={form.adminCode}
+                    onChange={set('adminCode')}
+                    placeholder="승인된 관리자 코드 입력"
+                    required={isAdmin}
+                    className="w-full pl-9 pr-4 py-2.5 border border-red-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
+                  />
+                </div>
+                <p className="text-xs text-red-500 mt-1.5">관리자 코드는 시스템 관리자에게 문의하세요.</p>
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 mt-1"
+            className={`w-full py-3 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 mt-1 ${isAdmin ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />처리 중...</> : '회원가입'}
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />처리 중...</> : isAdmin ? '관리자로 가입' : '회원가입'}
           </button>
         </form>
 

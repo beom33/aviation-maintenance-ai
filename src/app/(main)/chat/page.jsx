@@ -194,10 +194,10 @@ export default function ChatPage() {
                     <p className="text-xs text-slate-400 text-center py-6">저장된 대화가 없습니다</p>
                   ) : (
                     conversations.map(c => (
-                      <button
+                      <div
                         key={c.id}
                         onClick={() => switchConversation(c)}
-                        className={`w-full flex items-start justify-between gap-2 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors group ${
+                        className={`w-full flex items-start justify-between gap-2 px-3 py-2.5 text-left hover:bg-slate-50 transition-colors group cursor-pointer ${
                           c.id === conv.id ? 'bg-blue-50' : ''
                         }`}
                       >
@@ -216,7 +216,7 @@ export default function ChatPage() {
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>

@@ -8,7 +8,6 @@ const TABS = [
   { id: 'aircraft', label: '항공기 관리', icon: Plane },
   { id: 'assignments', label: '배정 관리', icon: Link2 },
 ];
-const ROLE_LABEL = { ADMIN: '관리자', SUPERVISOR: '감독관', TECHNICIAN: '정비사' };
 const ROLE_COLOR = { ADMIN: 'bg-red-100 text-red-700', SUPERVISOR: 'bg-yellow-100 text-yellow-700', TECHNICIAN: 'bg-green-100 text-green-700' };
 
 export default function AdminPage() {
@@ -51,7 +50,9 @@ export default function AdminPage() {
   const deleteUser = async (id, name) => {
     if (!confirm(`${name} 회원을 삭제하시겠습니까?`)) return;
     const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    const data = await res.json();
     if (res.ok) { setUsers((u) => u.filter((x) => x.id !== id)); showMsg('success', '회원이 삭제되었습니다'); }
+    else showMsg('error', data.error ?? '삭제에 실패했습니다');
   };
 
   const addAircraft = async (e) => {
