@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Wrench, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,10 +25,10 @@ export default function LoginPage() {
         router.push('/dashboard');
         router.refresh();
       } else {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다');
+        setError(t.login.error);
       }
     } catch {
-      setError('로그인 중 오류가 발생했습니다');
+      setError(t.login.serverError);
     } finally {
       setLoading(false);
     }
@@ -39,8 +41,8 @@ export default function LoginPage() {
           <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Wrench className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">항공정비 AI 비서</h1>
-          <p className="text-slate-500 text-sm mt-1">계정으로 로그인하세요</p>
+          <h1 className="text-2xl font-bold text-slate-800">{t.login.title}</h1>
+          <p className="text-slate-500 text-sm mt-1">{t.login.subtitle}</p>
         </div>
 
         {error && (
@@ -52,7 +54,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">이메일</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.login.email}</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -67,7 +69,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">비밀번호</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.login.password}</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -86,13 +88,13 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 mt-2"
           >
-            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />로그인 중...</> : '로그인'}
+            {loading ? <><Loader2 className="w-4 h-4 animate-spin" />{t.login.loading}</> : t.login.button}
           </button>
         </form>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          계정이 없으신가요?{' '}
-          <Link href="/signup" className="text-blue-600 hover:underline font-medium">회원가입</Link>
+          {t.login.noAccount}{' '}
+          <Link href="/signup" className="text-blue-600 hover:underline font-medium">{t.login.signup}</Link>
         </p>
       </div>
     </div>

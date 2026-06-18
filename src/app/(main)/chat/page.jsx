@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Trash2, BookOpen, Plus, History, X, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   loadHistory,
   createConversation,
@@ -13,16 +14,10 @@ import {
   formatDate,
 } from '@/lib/chatHistory';
 
-const QUICK_QUESTIONS = [
-  'B737 CFM56-7B 엔진 시동 절차는?',
-  'Hydraulic leak 비상 절차를 알려줘',
-  'Pre-flight inspection 체크리스트',
-  'EICAS 경고 메시지 해석 방법',
-];
-
 export default function ChatPage() {
-  const [conv, setConv] = useState(null);          // 현재 대화
-  const [conversations, setConversations] = useState([]); // 전체 목록
+  const { t, locale } = useLanguage();
+  const [conv, setConv] = useState(null);
+  const [conversations, setConversations] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [useDocuments, setUseDocuments] = useState(false);
@@ -31,7 +26,6 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null);
   const historyRef = useRef(null);
 
-  // 초기 로드
   useEffect(() => {
     const history = loadHistory();
     setConversations(history.conversations);
@@ -46,12 +40,10 @@ export default function ChatPage() {
     fetch('/api/documents').then(r => r.json()).then(docs => setDocCount(docs.length)).catch(() => {});
   }, []);
 
-  // 메시지 변경 시 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conv?.messages]);
 
-  // 히스토리 패널 외부 클릭 시 닫기
   useEffect(() => {
     const handler = (e) => {
       if (historyRef.current && !historyRef.current.contains(e.target)) {
@@ -79,7 +71,6 @@ export default function ChatPage() {
   const switchConversation = (target) => {
     setConv(target);
     setShowHistory(false);
-    // currentId 업데이트
     saveConversation(target);
   };
 
@@ -109,9 +100,12 @@ export default function ChatPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages, useDocuments }),
+        body: JSON.stringify({ messages: nextMessages, useDocuments, locale }),
       });
-      if (!res.ok) throw new Error();
+        if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error ?? 'Server error');
+      }
 
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
@@ -136,7 +130,7 @@ export default function ChatPage() {
     } catch {
       const errConv = {
         ...withUser,
-        messages: [...nextMessages, { role: 'assistant', content: '오류가 발생했습니다. GROQ_API_KEY를 확인하세요.' }],
+        messages: [...nextMessages, { role: 'assistant', content: t.chat.errorMsg }],
       };
       persistConv(errConv);
     } finally {
@@ -162,9 +156,9 @@ export default function ChatPage() {
       <div className="px-6 py-3 border-b border-slate-200 bg-white shrink-0 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-semibold text-slate-800 truncate">
-            {conv.title || '새 대화'}
+            {conv.title || t.chat.newChatTitle}
           </h2>
-          <p className="text-xs text-slate-400">AMM, CMM, FIM 관련 질문</p>
+          <p className="text-xs text-slate-400">{t.chat.subtitle}</p>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
@@ -177,21 +171,21 @@ export default function ChatPage() {
               }`}
             >
               <History className="w-3.5 h-3.5" />
-              이전 대화 {conversations.length > 0 && `(${conversations.length})`}
+              {t.chat.prevChats} {conversations.length > 0 && `(${conversations.length})`}
             </button>
 
             {/* 이력 드롭다운 */}
             {showHistory && (
               <div className="absolute right-0 top-full mt-1 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
                 <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">대화 이력</span>
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{t.chat.historyTitle}</span>
                   <button onClick={() => setShowHistory(false)} className="text-slate-400 hover:text-slate-600">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <div className="max-h-72 overflow-y-auto">
                   {conversations.length === 0 ? (
-                    <p className="text-xs text-slate-400 text-center py-6">저장된 대화가 없습니다</p>
+                    <p className="text-xs text-slate-400 text-center py-6">{t.chat.noHistory}</p>
                   ) : (
                     conversations.map(c => (
                       <div
@@ -203,7 +197,7 @@ export default function ChatPage() {
                       >
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs font-medium truncate ${c.id === conv.id ? 'text-blue-700' : 'text-slate-700'}`}>
-                            {c.title || '새 대화'}
+                            {c.title || t.chat.newChatTitle}
                           </p>
                           <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                             <Clock className="w-2.5 h-2.5" />
@@ -230,7 +224,7 @@ export default function ChatPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            새 대화
+            {t.chat.newChat}
           </button>
         </div>
       </div>
@@ -242,10 +236,10 @@ export default function ChatPage() {
             <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
               <Bot className="w-8 h-8 text-blue-500" />
             </div>
-            <p className="font-semibold text-slate-700 text-base">항공정비 AI 비서</p>
-            <p className="text-sm mt-1 mb-6">정비 매뉴얼, 절차, 기술 질문을 입력해 보세요</p>
+            <p className="font-semibold text-slate-700 text-base">{t.chat.aiName}</p>
+            <p className="text-sm mt-1 mb-6">{t.chat.aiSubtitle}</p>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-              {QUICK_QUESTIONS.map(q => (
+              {t.chat.quickQuestions.map(q => (
                 <button
                   key={q}
                   onClick={() => sendMessage(q)}
@@ -327,7 +321,7 @@ export default function ChatPage() {
               }`}
             >
               <BookOpen className="w-3 h-3" />
-              문서 참조 {useDocuments ? 'ON' : 'OFF'} ({docCount}개)
+              {useDocuments ? t.chat.docToggleOn : t.chat.docToggleOff} ({docCount})
             </button>
           </div>
         )}
@@ -336,7 +330,7 @@ export default function ChatPage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="정비 관련 질문을 입력하세요... (Enter 전송, Shift+Enter 줄바꿈)"
+            placeholder={t.chat.placeholder}
             className="flex-1 resize-none border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-40 bg-white"
             rows={1}
           />

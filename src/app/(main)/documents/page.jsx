@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Upload, Trash2, FileText, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DocumentsPage() {
+  const { t } = useLanguage();
   const [documents, setDocuments] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState(null); // { type: 'success'|'error', message }
+  const [uploadResult, setUploadResult] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -27,7 +29,7 @@ export default function DocumentsPage() {
   const uploadFile = async (file) => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      setUploadResult({ type: 'error', message: 'PDF 파일만 업로드 가능합니다' });
+      setUploadResult({ type: 'error', message: t.documents.onlyPdf });
       return;
     }
 
@@ -46,12 +48,12 @@ export default function DocumentsPage() {
       } else {
         setUploadResult({
           type: 'success',
-          message: `"${data.name}" 업로드 완료 (${data.pages}페이지)`,
+          message: `"${data.name}" ${t.documents.uploadSuccess} (${data.pages} ${t.documents.uploadPages})`,
         });
         fetchDocuments();
       }
     } catch {
-      setUploadResult({ type: 'error', message: '업로드 중 오류가 발생했습니다' });
+      setUploadResult({ type: 'error', message: t.documents.errorUpload });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -69,7 +71,7 @@ export default function DocumentsPage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`"${name}"을 삭제하시겠습니까?`)) return;
+    if (!confirm(`"${name}" ${t.documents.deleteConfirm}`)) return;
     try {
       await fetch('/api/documents', {
         method: 'DELETE',
@@ -92,8 +94,8 @@ export default function DocumentsPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 py-4 border-b border-slate-200 bg-white shrink-0">
-        <h2 className="text-lg font-semibold text-slate-800">문서 관리</h2>
-        <p className="text-sm text-slate-500">PDF 매뉴얼을 업로드하면 Q&A 채팅에서 참조합니다</p>
+        <h2 className="text-lg font-semibold text-slate-800">{t.documents.title}</h2>
+        <p className="text-sm text-slate-500">{t.documents.subtitle}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -121,14 +123,14 @@ export default function DocumentsPage() {
             {isUploading ? (
               <div className="flex flex-col items-center gap-3 text-blue-600">
                 <Loader className="w-10 h-10 animate-spin" />
-                <p className="font-medium">PDF 분석 중... (대용량 파일은 시간이 걸릴 수 있습니다)</p>
+                <p className="font-medium">{t.documents.analyzing}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 text-slate-400">
                 <Upload className="w-10 h-10" />
                 <div>
-                  <p className="font-medium text-slate-600">클릭하거나 PDF를 드래그하세요</p>
-                  <p className="text-sm mt-1">최대 50MB · 텍스트 기반 PDF만 지원</p>
+                  <p className="font-medium text-slate-600">{t.documents.dropzone}</p>
+                  <p className="text-sm mt-1">{t.documents.dropzoneHint}</p>
                 </div>
               </div>
             )}
@@ -152,7 +154,7 @@ export default function DocumentsPage() {
           {documents.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
-                업로드된 문서 ({documents.length}개)
+                {t.documents.uploadedDocs} ({documents.length})
               </h3>
               <div className="space-y-2">
                 {documents.map(doc => (
@@ -169,7 +171,7 @@ export default function DocumentsPage() {
                     <button
                       onClick={() => handleDelete(doc.id, doc.name)}
                       className="p-1.5 text-slate-300 hover:text-red-500 transition-colors shrink-0"
-                      title="삭제"
+                      title={t.delete}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -182,18 +184,18 @@ export default function DocumentsPage() {
           {documents.length === 0 && !isUploading && (
             <div className="text-center py-8 text-slate-400">
               <FileText className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-              <p className="text-sm">아직 업로드된 문서가 없습니다</p>
-              <p className="text-xs mt-1">FAA AC 43.13-1B 같은 항공 정비 매뉴얼을 업로드해 보세요</p>
+              <p className="text-sm">{t.documents.noDocuments}</p>
+              <p className="text-xs mt-1">{t.documents.noDocumentsHint}</p>
             </div>
           )}
 
           {/* 안내 */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
-            <p className="font-semibold mb-1">사용 방법</p>
+            <p className="font-semibold mb-1">{t.documents.howToUse}</p>
             <ol className="space-y-1 text-blue-700 list-decimal list-inside">
-              <li>PDF 매뉴얼을 업로드합니다</li>
-              <li>매뉴얼 Q&A 채팅 페이지로 이동합니다</li>
-              <li>"문서 참조" 토글을 켜고 질문하면 업로드한 문서 내용을 기반으로 답변합니다</li>
+              <li>{t.documents.howToStep1}</li>
+              <li>{t.documents.howToStep2}</li>
+              <li>{t.documents.howToStep3}</li>
             </ol>
           </div>
         </div>

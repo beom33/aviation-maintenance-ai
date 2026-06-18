@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { CheckSquare, Square, RefreshCw, ClipboardList } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ChecklistPage() {
+  const { t } = useLanguage();
   const [aircraftType, setAircraftType] = useState('');
   const [taskType, setTaskType] = useState('');
   const [items, setItems] = useState([]);
@@ -31,7 +33,7 @@ export default function ChecklistPage() {
       })));
       setTitle(data.title ?? `${aircraftType} - ${taskType}`);
     } catch {
-      alert('체크리스트 생성에 실패했습니다. API 키를 확인하세요.');
+      alert(t.checklist.errorGenerate);
     } finally {
       setIsLoading(false);
     }
@@ -48,8 +50,8 @@ export default function ChecklistPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 py-4 border-b border-slate-200 bg-white shrink-0">
-        <h2 className="text-lg font-semibold text-slate-800">정비 작업 체크리스트</h2>
-        <p className="text-sm text-slate-500">항공기 종류와 작업 내용을 입력하면 AI가 체크리스트를 생성합니다</p>
+        <h2 className="text-lg font-semibold text-slate-800">{t.checklist.title}</h2>
+        <p className="text-sm text-slate-500">{t.checklist.subtitle}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -57,22 +59,22 @@ export default function ChecklistPage() {
           <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6 shadow-sm">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">항공기 종류</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">{t.checklist.aircraftType}</label>
                 <input
                   value={aircraftType}
                   onChange={e => setAircraftType(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && generateChecklist()}
-                  placeholder="예: B737-800, A320, B777"
+                  placeholder={t.checklist.aircraftPlaceholder}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">작업 내용</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">{t.checklist.taskType}</label>
                 <input
                   value={taskType}
                   onChange={e => setTaskType(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && generateChecklist()}
-                  placeholder="예: 엔진 오일 교환, 착륙장치 점검"
+                  placeholder={t.checklist.taskPlaceholder}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -83,9 +85,9 @@ export default function ChecklistPage() {
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-lg py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <><RefreshCw className="w-4 h-4 animate-spin" /> 생성 중...</>
+                <><RefreshCw className="w-4 h-4 animate-spin" /> {t.checklist.generating}</>
               ) : (
-                <><ClipboardList className="w-4 h-4" /> 체크리스트 생성</>
+                <><ClipboardList className="w-4 h-4" /> {t.checklist.generate}</>
               )}
             </button>
           </div>
@@ -129,7 +131,7 @@ export default function ChecklistPage() {
 
               {allDone && (
                 <div className="px-5 py-4 bg-green-50 border-t border-green-100 text-sm font-medium text-green-700 text-center">
-                  ✓ 모든 체크 항목이 완료되었습니다
+                  {t.checklist.allDone}
                 </div>
               )}
             </div>

@@ -2,20 +2,22 @@
 
 import { useState } from 'react';
 import { Search, AlertTriangle, CheckCircle, Info, FileText } from 'lucide-react';
-
-const SEVERITY_STYLE = {
-  high: { bg: 'bg-red-50 border-red-200', text: 'text-red-700', label: '고위험 (즉시 조치)', dot: 'bg-red-500' },
-  medium: { bg: 'bg-orange-50 border-orange-200', text: 'text-orange-700', label: '중위험 (차기 정비)', dot: 'bg-orange-500' },
-  low: { bg: 'bg-yellow-50 border-yellow-200', text: 'text-yellow-700', label: '저위험 (모니터링)', dot: 'bg-yellow-500' },
-};
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const EXAMPLE_CODES = ['27-11-00', '34-51-00', 'EICAS FUEL PRESS LOW', 'P0300', 'B1-1-1'];
 
 export default function FaultCodePage() {
+  const { t } = useLanguage();
   const [code, setCode] = useState('');
   const [aircraftType, setAircraftType] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const SEVERITY_STYLE = {
+    high: { bg: 'bg-red-50 border-red-200', text: 'text-red-700', label: t.faultCode.severityHigh, dot: 'bg-red-500' },
+    medium: { bg: 'bg-orange-50 border-orange-200', text: 'text-orange-700', label: t.faultCode.severityMedium, dot: 'bg-orange-500' },
+    low: { bg: 'bg-yellow-50 border-yellow-200', text: 'text-yellow-700', label: t.faultCode.severityLow, dot: 'bg-yellow-500' },
+  };
 
   const analyzeCode = async (targetCode) => {
     const c = (targetCode ?? code).trim();
@@ -33,7 +35,7 @@ export default function FaultCodePage() {
       const data = await res.json();
       setAnalysis(data);
     } catch {
-      alert('분석에 실패했습니다. API 키를 확인하세요.');
+      alert(t.faultCode.errorAnalyze);
     } finally {
       setIsLoading(false);
     }
@@ -44,8 +46,8 @@ export default function FaultCodePage() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 py-4 border-b border-slate-200 bg-white shrink-0">
-        <h2 className="text-lg font-semibold text-slate-800">결함 코드 분석</h2>
-        <p className="text-sm text-slate-500">FIM/FRM/EICAS 코드를 입력하면 원인과 조치 방법을 안내합니다</p>
+        <h2 className="text-lg font-semibold text-slate-800">{t.faultCode.title}</h2>
+        <p className="text-sm text-slate-500">{t.faultCode.subtitle}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -53,28 +55,28 @@ export default function FaultCodePage() {
           <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6 shadow-sm">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">결함 코드</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">{t.faultCode.codeLabel}</label>
                 <input
                   value={code}
                   onChange={e => setCode(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && analyzeCode()}
-                  placeholder="예: 27-11-00, P0100"
+                  placeholder={t.faultCode.codePlaceholder}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">항공기 종류 (선택)</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">{t.faultCode.aircraftLabel}</label>
                 <input
                   value={aircraftType}
                   onChange={e => setAircraftType(e.target.value)}
-                  placeholder="예: B737-800, A320"
+                  placeholder="B737-800, A320"
                   className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div className="flex flex-wrap gap-1.5 mb-4">
-              <span className="text-xs text-slate-400">예시:</span>
+              <span className="text-xs text-slate-400">{t.faultCode.examples}</span>
               {EXAMPLE_CODES.map(ex => (
                 <button
                   key={ex}
@@ -92,9 +94,9 @@ export default function FaultCodePage() {
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-lg py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <><Search className="w-4 h-4 animate-pulse" /> 분석 중...</>
+                <><Search className="w-4 h-4 animate-pulse" /> {t.faultCode.analyzing}</>
               ) : (
-                <><Search className="w-4 h-4" /> 결함 코드 분석</>
+                <><Search className="w-4 h-4" /> {t.faultCode.analyzeButton}</>
               )}
             </button>
           </div>
@@ -117,7 +119,7 @@ export default function FaultCodePage() {
               <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                 <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-500" />
-                  예상 원인 (Possible Causes)
+                  {t.faultCode.possibleCauses}
                 </h4>
                 <ul className="space-y-2">
                   {analysis.possibleCauses.map((cause, i) => (
@@ -132,7 +134,7 @@ export default function FaultCodePage() {
               <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                 <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  수정 조치 (Corrective Actions)
+                  {t.faultCode.correctiveActions}
                 </h4>
                 <ol className="space-y-2">
                   {analysis.correctiveActions.map((action, i) => (
@@ -148,7 +150,7 @@ export default function FaultCodePage() {
                 <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                   <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-blue-500" />
-                    참조 문서 (References)
+                    {t.faultCode.references}
                   </h4>
                   <ul className="space-y-1">
                     {analysis.references.map((ref, i) => (
@@ -161,7 +163,7 @@ export default function FaultCodePage() {
               {analysis.notes && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
                   <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800"><span className="font-semibold">참고:</span> {analysis.notes}</p>
+                  <p className="text-sm text-amber-800"><span className="font-semibold">{t.faultCode.note}</span> {analysis.notes}</p>
                 </div>
               )}
             </div>

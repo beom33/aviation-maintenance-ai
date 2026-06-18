@@ -23,7 +23,7 @@ export async function POST(request) {
       role = 'ADMIN';
     }
 
-    const existing = await prisma.user.findUnique({1 where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: '이미 사용 중인 이메일입니다' }, { status: 409 });
     }
